@@ -1,38 +1,42 @@
 package com.example.controller;
 
-import com.example.model.StockData;
-import com.example.repository.StockDataRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Optional;
+import com.example.model.StockData;
+import com.example.service.StockService;
 
 @RestController
 @RequestMapping("/stock")
 public class TestController {
 
-    @Autowired
-    StockDataRepository stockDataRepository;
+	@Autowired
+	StockService stockService;
 
-    @PostMapping("/data")
-    public void postData(@RequestBody StockData stockData){
+	@CachePut(value = "stockdata")
+	@PostMapping("/data")
+	public void postData(@RequestBody StockData stockData) {
+		System.out.println("calling service layer for daving record");
+		stockService.createStock(stockData);
 
-        stockDataRepository.save(stockData);
+	}
 
+	@Cacheable(value = "stock", key = "#id")
+	@GetMapping("/getdata/{id}")
+	@ResponseBody
+	public StockData getData(@PathVariable int id) {
 
+		System.out.println("fetching record from service layer");
+		return stockService.getStockData(id);
 
-    }
-    @GetMapping("/getdata/{id}")
-    public Optional<StockData> getData(@PathVariable int id){
-        System.out.println("test");
-       return  stockDataRepository.findById(id);
-    }
-    @DeleteMapping("deletedata/{id}")
-    public void deleteData(@PathVariable int id){
-    stockDataRepository.deleteById(id);
-    }
-    @PostMapping
-    public void updateData(){
+	}
 
-    }
 }
